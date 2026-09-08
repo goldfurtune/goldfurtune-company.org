@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<meta content="#0f0c06" name="theme-color"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Gold Fortune" name="apple-mobile-web-app-title"/>
+<title>Gold Fortune – Dashboard</title>
+<link href="manifest.json" rel="manifest"/>
+<link href="icon-2.png" rel="icon"/>
+<link href="icon-1.png" rel="apple-touch-icon"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&amp;family=DM+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root {
+      --bg: #0f0c06; --card: #1c1610; --card2: #241c0f; --border: #3a3020;
+      --gold: #e8c547; --text: #f5eedc; --muted: #9a8658;
+      --success: #2ecc71; --danger: #e74c3c;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: "DM Sans", system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 24px; }
+    h1,h2,h3 { font-family: "Playfair Display", serif; }
+    .app { width: min(1180px, 100%); margin: 0 auto; padding: 16px 20px 32px; }
+    .loading { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; z-index: 200; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; padding-top: 8px; }
+    .greet-label { font-size: 0.9rem; color: var(--muted); }
+    .greet-name { font-size: 1.55rem; color: var(--gold); font-weight: 700; margin-top: 2px; }
+    .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--gold); color: #1a1408; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; }
+    .balance-card { background: linear-gradient(160deg, #2a2214 0%, #1a140c 100%); border: 1px solid rgba(232,197,71,0.35); border-radius: 18px; padding: 22px 20px; margin-bottom: 14px; position: relative; overflow: hidden; }
+    .balance-card::after { content: ""; position: absolute; top: -30%; right: -20%; width: 60%; height: 80%; background: radial-gradient(circle, rgba(232,197,71,0.12) 0%, transparent 70%); pointer-events: none; }
+    .bal-label { font-size: 0.9rem; color: var(--muted); margin-bottom: 4px; }
+    .bal-amount { font-size: 2rem; font-weight: 700; color: var(--gold); font-family: "Playfair Display", serif; }
+    .bal-sub { font-size: 0.85rem; color: var(--muted); margin: 4px 0 18px; }
+    .bal-actions { display: flex; gap: 10px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 18px; border-radius: 12px; font-size: 0.92rem; font-weight: 600; border: none; cursor: pointer; }
+    .btn:active { opacity: 0.85; }
+    .btn-gold { background: var(--gold); color: #1a1408; flex: 1; }
+    .btn-dark { background: #12100a; color: var(--gold); border: 1px solid var(--border); flex: 1; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; }
+    .stat-val { font-size: 1.35rem; font-weight: 700; color: var(--gold); font-family: "Playfair Display", serif; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+    .quick-nav { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 10px; margin-bottom: 28px; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; background: none; border: none; color: var(--text); cursor: pointer; font-family: inherit; font-size: 0.72rem; font-weight: 500; }
+    .nav-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--gold); }
+    .nav-item:active .nav-icon { border-color: var(--gold); background: rgba(232,197,71,0.1); }
+    .section-title { font-size: 1.25rem; color: var(--text); margin-bottom: 14px; font-family: "Playfair Display", serif; }
+    .carousel { position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 28px; aspect-ratio: 16/9; background: var(--card); }
+    .carousel-track { display: flex; width: 300%; height: 100%; transition: transform 0.45s ease; }
+    .carousel-slide { width: 33.333%; height: 100%; flex-shrink: 0; }
+    .carousel-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .carousel-dots { position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; }
+    .carousel-dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.35); cursor: pointer; }
+    .carousel-dots span.active { background: var(--gold); width: 18px; border-radius: 4px; }
+    .tx-list { display: flex; flex-direction: column; gap: 10px; }
+    .tx-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
+    .tx-title { font-weight: 600; font-size: 0.95rem; }
+    .tx-date { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .tx-amount { font-weight: 700; font-size: 0.95rem; }
+    .tx-amount.plus { color: var(--success); }
+    .tx-amount.minus { color: var(--danger); }
+    .empty { text-align: center; color: var(--muted); padding: 24px; font-size: 0.9rem; }
+    .page { display: none; }
+    .page.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .back-btn { width: 40px; height: 40px; border-radius: 12px; background: var(--card); border: 1px solid var(--border); color: var(--gold); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .page-header h2 { font-size: 1.3rem; color: var(--gold); }
+    .product-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 12px; }
+    .product-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .product-name { font-size: 1.15rem; color: var(--gold); font-weight: 700; }
+    .product-desc { font-size: 0.88rem; color: var(--muted); margin-bottom: 12px; }
+    .product-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 0.9rem; margin-bottom: 14px; }
+    .product-meta span { color: var(--muted); }
+    .product-meta strong { color: var(--text); }
+    .link-card { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 10px; text-decoration: none; color: var(--text); }
+    .link-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(232,197,71,0.12); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .link-card strong { display: block; font-size: 0.95rem; }
+    .link-card span { font-size: 0.8rem; color: var(--muted); }
+    .invite-box { background: var(--card); border: 1px dashed var(--border); border-radius: 16px; padding: 22px; text-align: center; margin-bottom: 16px; }
+    .invite-code { font-size: 1.5rem; font-weight: 700; color: var(--gold); letter-spacing: 1px; margin: 10px 0 16px; font-family: "Playfair Display", serif; }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { color: var(--muted); }
+    .info-value { font-weight: 600; text-align: right; max-width: 60%; word-break: break-all; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; align-items: flex-end; justify-content: center; z-index: 300; padding: 16px; }
+    .modal-bg.show { display: flex; }
+    .modal { background: var(--card2); border: 1px solid var(--border); border-radius: 20px 20px 16px 16px; padding: 24px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; }
+    .modal h3 { color: var(--gold); margin-bottom: 8px; font-size: 1.2rem; }
+    .modal p { font-size: 0.9rem; color: var(--muted); margin-bottom: 16px; }
+    .modal label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+    .modal input,.modal select { width: 100%; height: 46px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0 14px; color: var(--text); font-size: 0.95rem; outline: none; margin-bottom: 14px; }
+    .modal input:focus,.modal select:focus { border-color: var(--gold); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+    /* Mobile-safe Add Bank modal: keep the complete form reachable and scrollable. */
+    #bankModal { align-items: flex-start; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
+    #bankModal .modal { max-height: calc(100dvh - max(32px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 32px)); overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; margin: auto 0; padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+    @supports not (height: 100dvh) { #bankModal .modal { max-height: calc(100vh - 32px); } }
+    @media (max-width: 520px) {
+      #bankModal { padding-left: 12px; padding-right: 12px; }
+      #bankModal .modal { max-width: 100%; width: 100%; border-radius: 20px; padding: 20px 16px max(24px, env(safe-area-inset-bottom)); }
+      #bankModal .modal-actions { position: sticky; bottom: 0; background: var(--card2); padding-top: 10px; padding-bottom: 2px; }
+    }
+    .modal-actions .btn { flex: 1; }
+    .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--card2); border: 1px solid var(--gold); color: var(--text); padding: 12px 18px; border-radius: 12px; z-index: 400; opacity: 0; transition: all 0.3s; font-size: 0.9rem; max-width: 90%; text-align: center; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+  
+    .activity-popup{position:fixed;top:16px;left:50%;width:min(440px,calc(100vw - 28px));transform:translate(-50%,-140%);opacity:0;z-index:500;background:linear-gradient(145deg,#211a0f,#151109);border:1px solid rgba(232,197,71,.55);border-radius:18px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 18px 55px rgba(0,0,0,.5);transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .35s ease}.activity-popup.show{transform:translate(-50%,0);opacity:1}.activity-popup .community-action{color:var(--success);font-weight:800}.activity-popup .community-small{color:var(--muted)}.nav-icon svg{width:29px;height:29px;fill:none;stroke:var(--gold);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.nav-item{font-size:.78rem;text-decoration:none;font-weight:500}.nav-icon{width:62px;height:62px;border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 10px 30px rgba(0,0,0,.18)}.community{margin-top:26px;display:none}.community-card{background:linear-gradient(145deg,#211a0f,#151109);border:1px solid var(--border);border-radius:16px;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}.community-left{display:flex;align-items:center;gap:11px}.community-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(145deg,#fff09b,#e8c547);color:#1b1408;display:grid;place-items:center;font-weight:800}.community-small{font-size:.72rem;color:var(--muted)}.community-name{font-weight:700;font-size:.88rem}.community-action{font-size:.76rem;color:#bfae84;text-align:right}
+.inbox-icon{position:relative}.inbox-badge{position:absolute;right:-4px;top:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#e53935;color:#fff;font-size:11px;display:none;place-items:center;font-weight:800}.earn-card{border:0;color:inherit;text-align:left;cursor:pointer;width:100%}.modal input{width:100%;padding:14px;border-radius:12px;border:1px solid var(--border);background:#14100b;color:var(--text);font:inherit;margin-top:8px}.actions{display:flex;gap:10px}.actions .btn{flex:1}
+
+    .balance-card{padding:18px 18px 16px}.balance-slider{position:relative;overflow:hidden;border-radius:15px;min-height:142px;background:linear-gradient(145deg,rgba(255,255,255,.025),rgba(0,0,0,.08));border:1px solid rgba(232,197,71,.12)}.balance-track{display:flex;width:300%;transition:transform .38s cubic-bezier(.2,.8,.2,1);touch-action:pan-y}.balance-slide{width:33.333333%;flex:0 0 33.333333%;padding:18px 42px 38px;min-height:142px}.balance-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:6px}.balance-dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.24)}.balance-dots span.active{width:18px;border-radius:5px;background:var(--gold)}.balance-arrow{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;border:1px solid rgba(232,197,71,.28);background:rgba(12,10,7,.58);color:var(--gold);font-size:1.25rem;line-height:1;cursor:pointer}.balance-prev{left:8px}.balance-next{right:8px}.pending-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:rgba(232,197,71,.12);border:1px solid rgba(232,197,71,.32);color:var(--gold);font-size:.68rem;font-weight:800;margin-left:8px}.tx-amount.pending{color:var(--gold)}.tx-item.pending-row{border-color:rgba(232,197,71,.28);box-shadow:0 8px 24px rgba(232,197,71,.05)}
+    .bank-picker{position:relative;margin-bottom:14px}.bank-select{width:100%;height:50px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:0 14px;color:var(--text);font:inherit;cursor:pointer;outline:none}.bank-select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(232,197,71,.08)}.bank-select option{background:#15120d;color:#f5eedc}.bank-picker-trigger{width:100%;height:50px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:0 14px;color:var(--text);display:flex;align-items:center;justify-content:space-between;font:inherit;text-align:left;cursor:pointer}.bank-picker-trigger.open{border-color:var(--gold);box-shadow:0 0 0 3px rgba(232,197,71,.08)}.bank-chevron{color:var(--gold);font-size:1.2rem}.bank-picker-menu{position:absolute;z-index:450;left:0;right:0;top:56px;background:linear-gradient(145deg,#24201a,#15120d);border:1px solid rgba(232,197,71,.34);border-radius:16px;padding:10px;display:none;box-shadow:0 22px 65px rgba(0,0,0,.65)}.bank-picker-menu.show{display:block;animation:fadeIn .18s ease}.bank-search-wrap{height:46px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--border);border-radius:11px;background:#0f0c06;margin-bottom:8px}.bank-search-wrap span{color:var(--gold);font-size:1.1rem}.bank-search-wrap input{border:0!important;background:transparent!important;margin:0!important;padding:0!important;height:100%!important;box-shadow:none!important}.bank-count{font-size:.7rem;color:var(--muted);padding:4px 4px 7px}.bank-list{max-height:330px;overflow-y:auto;border-radius:11px;overscroll-behavior:contain}.bank-option{width:100%;border:0;border-bottom:1px solid rgba(255,255,255,.06);background:transparent;color:var(--text);padding:13px 11px;text-align:left;font:inherit;font-size:.88rem;cursor:pointer}.bank-option:hover,.bank-option.selected{background:rgba(232,197,71,.09);color:var(--gold)}.bank-option:last-child{border-bottom:0}.withdraw-bank-summary{background:linear-gradient(145deg,#211a0f,#151109);border:1px solid rgba(232,197,71,.2);border-radius:14px;padding:12px 14px;margin-bottom:14px}.withdraw-bank-summary .summary-line{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.84rem}.withdraw-bank-summary .summary-line:last-child{border-bottom:0}.summary-label{color:var(--muted)}.summary-value{font-weight:700;text-align:right;max-width:65%;word-break:break-word}.luxury-processing{align-items:center!important;background:radial-gradient(circle at 50% 35%,rgba(232,197,71,.11),rgba(0,0,0,.9) 58%)!important}.processing-card{width:min(390px,calc(100vw - 34px));padding:34px 25px 27px;text-align:center;border-radius:28px;border:1px solid rgba(232,197,71,.42);background:linear-gradient(145deg,#292115,#110e09);box-shadow:0 30px 90px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,255,255,.05);position:relative;overflow:hidden}.processing-card:before{content:"";position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent,rgba(232,197,71,.12),transparent 30%);animation:processSweep 3.5s linear infinite}.processing-card>*{position:relative;z-index:1}.gf-orbit{width:92px;height:92px;border-radius:50%;margin:0 auto 18px;border:1px solid rgba(232,197,71,.35);display:grid;place-items:center;position:relative;box-shadow:0 0 45px rgba(232,197,71,.14)}.gf-orbit:before,.gf-orbit:after{content:"";position:absolute;border-radius:50%;border:2px solid transparent;border-top-color:var(--gold);animation:spin 1.15s linear infinite}.gf-orbit:before{inset:-7px}.gf-orbit:after{inset:7px;animation-duration:1.8s;animation-direction:reverse}.gf-orbit span{font:700 1.65rem 'Playfair Display',serif;color:var(--gold);letter-spacing:2px}.processing-kicker{font-size:.68rem;letter-spacing:3px;color:var(--muted);font-weight:800}.processing-card h3{font-size:1.35rem;color:var(--text);margin:7px 0}.processing-card p{font-size:.86rem;color:var(--muted);margin:0 0 17px}.process-progress{height:6px;border-radius:99px;background:#0c0a07;overflow:hidden;border:1px solid var(--border)}.process-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#9c7d18,var(--gold),#fff2a8);box-shadow:0 0 14px rgba(232,197,71,.55);transition:width 1s linear}.process-count{font:700 1.1rem 'Playfair Display',serif;color:var(--gold);margin-top:12px}@keyframes processSweep{to{transform:rotate(360deg)}}
+</style>
+<link rel="stylesheet" href="premium.css"></head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div><div style="color:var(--muted);font-size:0.9rem;">Loading...</div></div>
+<div id="liveSyncBadge" style="position:fixed;right:12px;top:12px;z-index:120;display:none;padding:6px 10px;border:1px solid rgba(232,197,71,.25);border-radius:999px;background:rgba(28,22,16,.86);color:#9a8658;font-size:.68rem;backdrop-filter:blur(10px);" title="This dashboard automatically checks for administrator updates"><span class="live-dot">●</span> Live</div>
+<div class="app" id="app" style="display:none;">
+<div class="page active" id="page-home">
+<div class="header">
+<div>
+<div class="greet-label" id="greetLabel">Good day,</div>
+<div class="greet-name" id="greetName">User</div>
+</div>
+<div class="avatar" id="avatar">U</div>
+</div>
+<div class="balance-card"><div class="balance-slider" id="balanceSlider"><div class="balance-track" id="balanceTrack">
+<div class="balance-slide"><div class="bal-label">Available Balance</div><div class="bal-amount" id="balanceAmount">₦0.00</div><div class="bal-sub">Gold Fortune Wallet</div></div>
+<div class="balance-slide"><div class="bal-label">Pending Withdrawal</div><div class="bal-amount" id="pendingWithdrawAmount">₦0.00</div><div class="bal-sub">Awaiting administrator approval</div></div>
+<div class="balance-slide"><div class="bal-label">Investment Balance</div><div class="bal-amount" id="investmentBalance">₦0.00</div><div class="bal-sub">Products purchased or invested</div></div>
+</div><div class="balance-dots" id="balanceDots"></div><button class="balance-arrow balance-prev" onclick="moveBalanceSlide(-1)" type="button">‹</button><button class="balance-arrow balance-next" onclick="moveBalanceSlide(1)" type="button">›</button></div>
+<div class="bal-actions"><button class="btn btn-gold" onclick="openWithdraw()">↓ Withdraw</button><button class="btn btn-dark" onclick="location.href='add-bank.html'">🏦 Add Bank</button></div></div>
+<div class="stats">
+<div class="stat-card"><div class="stat-val" id="totalReferrals">0</div><div class="stat-label">Total Referrals</div></div>
+<button class="stat-card earn-card" onclick="openEarnings()"><div class="stat-val" id="totalEarned">₦0</div><div class="stat-label">Earn</div></button>
+</div>
+<div class="quick-nav">
+<a class="nav-item" href="product.html"><div class="nav-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 8h12l1 13H5L6 8Z"></path><path d="M9 8V6a3 3 0 0 1 6 0v2"></path><path d="M9 12c0 2 6 2 6 0"></path></svg></div>Product</a>
+<a class="nav-item" href="support.html"><div class="nav-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"></path><path d="M4 14v3a2 2 0 0 0 2 2h1v-7H6a2 2 0 0 0-2 2Z"></path><path d="M20 14v3a2 2 0 0 1-2 2h-1v-7h1a2 2 0 0 1 2 2Z"></path></svg></div>Support</a>
+<a class="nav-item" href="platform.html"><div class="nav-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><rect height="6" rx="1" width="6" x="4" y="4"></rect><rect height="6" rx="1" width="6" x="14" y="4"></rect><rect height="6" rx="1" width="6" x="4" y="14"></rect><rect height="6" rx="1" width="6" x="14" y="14"></rect></svg></div>Platform</a>
+<a class="nav-item" href="invite.html"><div class="nav-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-2a6 6 0 0 1 12 0v2"></path><path d="M16 5.5a3 3 0 0 1 0 5.8"></path><path d="M18 14a5 5 0 0 1 3 4.5V20"></path></svg></div>Invite</a>
+<a class="nav-item" href="profile.html"><div class="nav-icon"><svg aria-hidden="true" viewbox="0 0 24 24"><circle cx="12" cy="7" r="3.5"></circle><path d="M5 21v-2.5a7 7 0 0 1 14 0V21"></path></svg></div>Profile</a>
+<a class="nav-item" href="#" onclick="showPage('inbox');return false;"><div class="nav-icon inbox-icon"><span class="inbox-badge" id="inboxBadge">0</span><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M4 5h16v14H4z"></path><path d="m5 7 7 6 7-6"></path></svg></div>Inbox</a>
+</div>
+<h2 class="section-title">Explore</h2>
+<div class="carousel">
+<div class="carousel-track" id="carouselTrack">
+<div class="carousel-slide"><img alt="Welcome" src="assets/carousel-1.jpg"/></div>
+<div class="carousel-slide"><img alt="Boost" src="assets/carousel-2.jpg"/></div>
+<div class="carousel-slide"><img alt="Withdraw" src="assets/carousel-3.jpg"/></div>
+</div>
+<div class="carousel-dots" id="carouselDots">
+<span class="active" onclick="goSlide(0)"></span>
+<span onclick="goSlide(1)"></span>
+<span onclick="goSlide(2)"></span>
+</div>
+</div>
+<div aria-live="polite" class="activity-popup" id="activityPopup"><div class="community-left"><div class="community-avatar" id="communityAvatar">GF</div><div><div class="community-name" id="communityName">Recent activity</div><div class="community-small" id="communityType">Activity</div></div></div><div class="community-action" id="communityAmount"></div></div>
+<h2 class="section-title">Recent Transactions</h2>
+<div class="tx-list" id="txList"><div class="empty">No transactions yet</div></div>
+</div>
+<div class="page" id="page-product">
+<div class="page-header"><button class="back-btn" onclick="showPage('home')">‹</button><h2>Products</h2></div>
+<div id="productsList"><div class="empty">Loading...</div></div>
+</div>
+<div class="page" id="page-support">
+<div class="page-header"><button class="back-btn" onclick="showPage('home')">‹</button><h2>Support</h2></div>
+<div id="supportLinks"><div class="empty">Loading...</div></div>
+</div>
+<div class="page" id="page-platform">
+<div class="page-header"><button class="back-btn" onclick="showPage('home')">‹</button><h2>Platform</h2></div>
+<div class="product-card">
+<div class="product-name">About Gold Fortune</div>
+<div class="product-desc" style="margin-top:10px;">Secure investment platform. Choose a package, fund your wallet, earn, and withdraw to your bank.</div>
+</div>
+<div class="product-card">
+<div class="info-row"><span class="info-label">Payment Bank</span><span class="info-value" id="platBank">—</span></div>
+<div class="info-row"><span class="info-label">Account Name</span><span class="info-value" id="platName">—</span></div>
+<div class="info-row"><span class="info-label">Account Number</span><span class="info-value" id="platAcct">—</span></div>
+</div>
+<button class="btn btn-gold" onclick="openDeposit()" style="width:100%;">Make a Deposit</button>
+</div>
+<div class="page" id="page-invite">
+<div class="page-header"><button class="back-btn" onclick="showPage('home')">‹</button><h2>Invite &amp; Earn</h2></div>
+<div class="invite-box">
+<div style="color:var(--muted);font-size:0.9rem;">Your referral code</div>
+<div class="invite-code" id="inviteCode">—</div>
+<button class="btn btn-gold" onclick="copyCode()" style="width:100%;">Copy Code</button>
+</div>
+<div class="stats">
+<div class="stat-card"><div class="stat-val" id="inviteRefs">0</div><div class="stat-label">Total Invites</div></div>
+<div class="stat-card"><div class="stat-val" id="inviteEarn">₦0</div><div class="stat-label">Invite Earnings</div></div>
+</div>
+<div class="product-card"><div class="product-desc">Share your unique referral link.</div><div class="info-row" style="margin-top:10px"><span class="info-label">Referral link</span><span class="info-value" id="inviteLink" style="word-break:break-all">—</span></div><button class="btn btn-dark" onclick="copyReferralLink()" style="width:100%;margin-top:12px">Copy Referral Link</button></div>
+</div>
+<div class="page" id="page-inbox">
+<div class="page-header"><button class="back-btn" onclick="showPage('home')">‹</button><h2>Inbox</h2></div>
+<div id="inboxList"><div class="empty">No messages</div></div>
+</div>
+<div class="page" id="page-profile">
+<div class="page-header"><button class="back-btn" onclick="showPage('home')">‹</button><h2>Profile</h2></div>
+<div class="product-card">
+<div class="info-row"><span class="info-label">Full Name</span><span class="info-value" id="profName">—</span></div>
+<div class="info-row"><span class="info-label">Email</span><span class="info-value" id="profEmail">—</span></div>
+<div class="info-row"><span class="info-label">Joined</span><span class="info-value" id="profJoined">—</span></div>
+<div class="info-row"><span class="info-label">Status</span><span class="info-value" id="profStatus" style="color:var(--success)">Active</span></div>
+<div class="info-row"><span class="info-label">Referral Code</span><span class="info-value" id="profCode">—</span></div>
+</div>
+<div class="product-card">
+<div class="section-title" style="font-size:1rem;margin-bottom:10px;">Bank Details</div>
+<div class="info-row"><span class="info-label">Your Bank</span><span class="info-value" id="profBank">Not set</span></div>
+<div class="info-row"><span class="info-label">Account No.</span><span class="info-value" id="profAcct">Not set</span></div>
+<button class="btn btn-dark" onclick="location.href='add-bank.html'" style="width:100%;margin-top:12px;">Update Bank</button>
+</div>
+<button class="btn btn-dark" onclick="logout()" style="width:100%;margin-top:8px;color:var(--danger);border-color:rgba(231,76,60,0.4);">Logout</button>
+</div>
+</div>
+<div class="modal-bg" id="withdrawModal">
+<div class="modal"><h3>Withdraw Funds</h3><p id="withdrawBankNotice">Your confirmed bank details will receive this withdrawal.</p>
+<div class="withdraw-bank-summary" id="withdrawBankDetails"></div>
+<label>Amount (₦)</label><input id="wdAmount" min="50000" placeholder="Minimum ₦50,000" step="1000" type="number"/>
+<div class="modal-actions"><button class="btn btn-dark" onclick="closeModals()">Cancel</button><button class="btn btn-gold" id="withdrawConfirmBtn" onclick="submitWithdraw()">Confirm Withdraw</button></div></div>
+</div>
+<div class="modal-bg" id="depositModal">
+<div class="modal">
+<h3>Make a Deposit</h3>
+<p>Transfer to this account, then contact support with your receipt.</p>
+<div id="depositDetails"></div>
+<div class="modal-actions">
+<button class="btn btn-dark" onclick="closeModals()">Close</button>
+<button class="btn btn-gold" id="contactSupportBtn">Contact Support</button>
+</div>
+</div>
+</div>
+<div class="modal-bg" id="bankModal">
+<div class="modal">
+<h3>Add Bank Account</h3>
+<p>Save your bank for withdrawals.</p>
+<label>Bank Name</label>
+<div style="font-size:.68rem;color:var(--muted);margin:-6px 0 8px">Licensed Nigerian deposit-taking institutions (NDIC/CBN reference list)</div>
+<div class="bank-picker" id="bankPickerWrap">
+<select id="userBankName" class="bank-select" aria-label="Select bank">
+<option value="">Select bank</option>
+</select>
+</div>
+<label>Account Number</label>
+<input id="userBankAcct" placeholder="Account number" type="text"/>
+<label>Account Name</label>
+<input id="userBankHolder" placeholder="Name on account" type="text"/>
+<div class="modal-actions">
+<button class="btn btn-dark" onclick="closeModals()">Cancel</button>
+<button class="btn btn-gold" onclick="saveUserBank()">Confirm Bank</button>
+</div>
+</div>
+</div>
+<div aria-live="polite" class="modal-bg luxury-processing" id="withdrawProcessing"><div class="processing-card"><div class="gf-orbit"><span>GF</span></div><div class="processing-kicker">GOLD FORTUNE</div><h3 id="withdrawProcessTitle">Securing your withdrawal</h3><p id="withdrawProcessText">Please wait while your request is securely prepared.</p><div class="process-progress"><span id="withdrawProgressBar"></span></div><div class="process-count" id="withdrawCountdown">10</div></div></div><div class="toast" id="toast"></div>
+<script src="app.js"></script>
+<script>
+    let currentUser = null, settings = {}, products = [], fullData = null, slide = 0, carTimer = null, balanceSlide = 0, balanceTouchStartX = 0;
+    let liveSyncFingerprint = "";
+    let liveSyncStarted = false;
+
+    function hourGreeting() {
+      const h = new Date().getHours();
+      if (h < 12) return "Good morning,";
+      if (h < 17) return "Good afternoon,";
+      return "Good evening,";
+    }
+    function showPage(name) {
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      const el = document.getElementById("page-" + name);
+      if (el) el.classList.add("active");
+      if(name==='inbox'){ loadInbox(); }
+      window.scrollTo(0, 0);
+    }
+    function goSlide(i) {
+      slide = i;
+      const track = document.getElementById("carouselTrack");
+      if (track) track.style.transform = "translateX(-" + (slide * 33.333) + "%)";
+      document.querySelectorAll("#carouselDots span").forEach((d, idx) => d.classList.toggle("active", idx === slide));
+      clearInterval(carTimer);
+      carTimer = setInterval(function() { goSlide((slide + 1) % 3); }, 4500);
+    }
+
+    document.addEventListener("DOMContentLoaded", async function() {
+      currentUser = getLoggedUser();
+      if (!currentUser) { location.href = "login.html"; return; }
+      try {
+        await loadAll();
+        startDashboardLiveSync();
+        goSlide(0);
+      } catch (e) {
+        console.error(e);
+        clearLoggedUser();
+        location.href = "login.html";
+      }
+    });
+
+    async function loadAll() {
+      fullData = await fetchBin();
+      const fresh = (fullData.users || []).find(function(u) { return u.email === currentUser.email; });
+      if (!fresh) { clearLoggedUser(); location.href = "login.html"; return; }
+      currentUser = fresh;
+      setLoggedUser(currentUser);
+      settings = fullData.settings || {};
+      products = fullData.products || [];
+      renderAll();
+      liveSyncFingerprint = makeLiveSyncFingerprint(fullData, currentUser);
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      var liveBadge = document.getElementById("liveSyncBadge");
+      if (liveBadge) liveBadge.style.display = "block";
+    }
+
+    function makeLiveSyncFingerprint(data, user) {
+      return JSON.stringify({
+        user: user || {},
+        settings: data && data.settings ? data.settings : {},
+        products: data && data.products ? data.products : [],
+        withdrawals: (data && data.withdrawals ? data.withdrawals : []).filter(function(w) {
+          return w && (w.email === (user && user.email) || w.user === (user && user.email));
+        })
+      });
+    }
+
+    function startDashboardLiveSync() {
+      if (liveSyncStarted) return;
+      liveSyncStarted = true;
+      const handleDashboardSync = async function(latest) {
+        if (!currentUser || !latest) return;
+        const freshUser = (latest.users || []).find(function(u) { return u.email === currentUser.email; });
+        if (!freshUser) return;
+
+        const fingerprint = makeLiveSyncFingerprint(latest, freshUser);
+        if (fingerprint === liveSyncFingerprint) return;
+
+        fullData = latest;
+        currentUser = freshUser;
+        settings = latest.settings || {};
+        products = latest.products || [];
+        setLoggedUser(currentUser);
+        liveSyncFingerprint = fingerprint;
+        renderAll();
+
+        // Re-bind modal data/buttons immediately if the admin changed it.
+        if (document.getElementById("depositModal")?.classList.contains("show")) {
+          openDeposit();
+        }
+        showToast("Live update received", 1600);
+      };
+
+      startFrontendSync(handleDashboardSync, 8000);
+    }
+
+    function initBalanceSlider(){
+      const track=document.getElementById('balanceTrack'), dots=document.getElementById('balanceDots'); if(!track||!dots)return;
+      dots.innerHTML=Array.from({length:3},function(_,i){return '<span class="'+(i===balanceSlide?'active':'')+'" onclick="setBalanceSlide('+i+')"></span>';}).join('');
+      track.style.transform='translateX(-'+(balanceSlide*33.3333333333)+'%)';
+      const slider=document.getElementById('balanceSlider'); if(slider&&!slider.dataset.bound){slider.dataset.bound='1';slider.addEventListener('touchstart',function(e){balanceTouchStartX=e.changedTouches[0].clientX},{passive:true});slider.addEventListener('touchend',function(e){const dx=e.changedTouches[0].clientX-balanceTouchStartX;if(Math.abs(dx)>35)moveBalanceSlide(dx<0?1:-1)},{passive:true});}
+    }
+    function setBalanceSlide(i){balanceSlide=Math.max(0,Math.min(2,i));initBalanceSlider()}
+    function moveBalanceSlide(delta){setBalanceSlide((balanceSlide+delta+3)%3)}
+    function calculateInvestmentBalance(data,user){
+      // investmentBalance is the authoritative total once it has been recorded.
+      // Do not add investments/payment submissions on top of it, otherwise the
+      // same investment can be counted more than once.
+      var stored=Number(user.investmentBalance);
+      if(Number.isFinite(stored) && stored>0) return stored;
+
+      // Legacy fallback for older accounts that do not yet have an
+      // investmentBalance value. Claims are excluded because confirmed claims
+      // are already represented by the stored balance when that field exists.
+      var total=0;
+      var investments=Array.isArray(user.investments)?user.investments:[];
+      investments.forEach(function(i){
+        var source=String(i.source||'').toLowerCase();
+        var status=String(i.status||'confirmed').toLowerCase();
+        if(source!=='claim' && !['pending','declined','rejected','cancelled'].includes(status)){
+          total += Math.max(0,Number(i.amount||i.price||0));
+        }
+      });
+
+      // Only use payment submissions as a legacy fallback when there are no
+      // investment records. This prevents a submitted payment from being
+      // counted again alongside an investment record for the same purchase.
+      if(total===0 && investments.length===0){
+        (data.paymentSubmissions||[]).forEach(function(p){
+          var email=String(p.email||'').toLowerCase();
+          var status=String(p.status||'').toLowerCase();
+          if(email===String(user.email||'').toLowerCase() && ['reviewed','approved','confirmed'].includes(status)){
+            total += Math.max(0,Number(p.amount||0));
+          }
+        });
+      }
+      return total;
+    }
+
+    function renderAll() {
+      var name = currentUser.fullName || "User";
+      var first = name.split(" ")[0];
+      var initial = (first[0] || "U").toUpperCase();
+      document.getElementById("greetLabel").textContent = hourGreeting();
+      document.getElementById("greetName").textContent = first;
+      document.getElementById("avatar").textContent = initial;
+
+      var bal = Number(currentUser.balance || 0);
+      document.getElementById("balanceAmount").textContent = money(bal);
+      document.getElementById("pendingWithdrawAmount").textContent = money(pendingWithdrawTotal(currentUser));
+      document.getElementById("investmentBalance").textContent = money(calculateInvestmentBalance(fullData, currentUser));
+      initBalanceSlider();
+
+      var refs = Number(currentUser.referrals || currentUser.totalReferrals || 0);
+      var earned = Number(currentUser.totalEarned || currentUser.balance || 0);
+      document.getElementById("totalReferrals").textContent = refs;
+      document.getElementById("totalEarned").textContent = "₦" + earned.toLocaleString();
+
+      var txs = currentUser.transactions || [];
+      var txBox = document.getElementById("txList");
+      if (!txs.length) {
+        if (bal > 0) {
+          txBox.innerHTML = '<div class="tx-item"><div><div class="tx-title">Welcome bonus</div><div class="tx-date">' +
+            (currentUser.joined ? new Date(currentUser.joined).toLocaleDateString() : "") +
+            '</div></div><div class="tx-amount plus">+₦' + bal.toLocaleString() + "</div></div>";
+        } else {
+          txBox.innerHTML = '<div class="empty">No transactions yet</div>';
+        }
+      } else {
+        txBox.innerHTML = txs.slice().reverse().slice(0, 10).map(function(t) {
+          var amt = Number(t.amount);
+          var pending=String(t.status||'').toLowerCase()==='pending' || String(t.type||'').toLowerCase()==='withdrawal' && String(t.status||'').toLowerCase()==='pending';
+          return '<div class="tx-item '+(pending?'pending-row':'')+'"><div><div class="tx-title">' + escapeHtml(t.memo || t.title || t.type || "Transaction") + (pending?'<span class="pending-badge">PENDING</span>':'') +
+            '</div><div class="tx-date">' + (t.date ? new Date(t.date).toLocaleDateString() : "") +
+            '</div></div><div class="tx-amount ' + (pending ? "pending" : (amt >= 0 ? "plus" : "minus")) + '">' +
+            (amt >= 0 ? "+" : "") + money(Math.abs(amt)) + "</div></div>";
+        }).join("");
+      }
+
+      var pBox = document.getElementById("productsList");
+      if (!products.length) {
+        pBox.innerHTML = '<div class="empty">No packages available</div>';
+      } else {
+        pBox.innerHTML = products.map(function(p) {
+          return '<div class="product-card"><div class="product-top"><span class="product-name">' + p.name +
+            '</span><span>' + (p.badge || "") + '</span></div><div class="product-desc">' + (p.desc || "") +
+            '</div><div class="product-meta"><span>Invest: <strong>₦' + Number(p.price).toLocaleString() +
+            '</strong></span><span>Profit: <strong>₦' + Number(p.profit).toLocaleString() +
+            '</strong></span></div><button class="btn btn-gold" style="width:100%;" onclick="investProduct(\'' +
+            p.id + "')\">Invest Now</button><button class=\"btn btn-dark\" style=\"width:100%;margin-top:8px;\" onclick=\"openClaim()\">Verify &amp; Claim Product</button></div>";
+        }).join("");
+      }
+
+      var sBox = document.getElementById("supportLinks");
+      var sHtml = "";
+      if (settings.whatsapp) sHtml += '<a class="link-card" href="' + settings.whatsapp + '" target="_blank" rel="noopener"><div class="link-icon">📱</div><div><strong>WhatsApp Support</strong><span>Chat with us</span></div></a>';
+      if (settings.telegram) sHtml += '<a class="link-card" href="' + settings.telegram + '" target="_blank" rel="noopener"><div class="link-icon">✈️</div><div><strong>Telegram</strong><span>Message support</span></div></a>';
+      if (settings.telegramChannel) sHtml += '<a class="link-card" href="' + settings.telegramChannel + '" target="_blank" rel="noopener"><div class="link-icon">📢</div><div><strong>Telegram Channel</strong><span>News & updates</span></div></a>';
+      sBox.innerHTML = sHtml || '<div class="empty">Support links will appear when set by admin</div>';
+
+      document.getElementById("platBank").textContent = settings.bankName || "—";
+      document.getElementById("platName").textContent = settings.accountName || "—";
+      document.getElementById("platAcct").textContent = settings.bankAccount || "—";
+
+      var code = currentUser.referralCode || currentUser.id || "—";
+      document.getElementById("inviteCode").textContent = code; document.getElementById("inviteLink").textContent = location.origin + '/signup.html?ref=' + encodeURIComponent(code);
+      document.getElementById("inviteRefs").textContent = refs;
+      document.getElementById("inviteEarn").textContent = "₦" + Number(currentUser.inviteEarnings || 0).toLocaleString();
+
+      document.getElementById("profName").textContent = name;
+      document.getElementById("profEmail").textContent = currentUser.email || "—";
+      document.getElementById("profJoined").textContent = currentUser.joined ? new Date(currentUser.joined).toLocaleDateString() : "—";
+      document.getElementById("profStatus").textContent = currentUser.status || "Active";
+      document.getElementById("profCode").textContent = code;
+      document.getElementById("profBank").textContent = (currentUser.bankName || (currentUser.withdrawalAccount||{}).bankName) || "Not set";
+      document.getElementById("profAcct").textContent = (currentUser.bankAccount || (currentUser.withdrawalAccount||{}).accountNumber) || "Not set";
+    }
+
+
+    function openDeposit() {
+      document.getElementById("depositDetails").innerHTML =
+        '<div class="info-row"><span class="info-label">Bank</span><span class="info-value">' + (settings.bankName || "—") +
+        '</span></div><div class="info-row"><span class="info-label">Account Name</span><span class="info-value">' +
+        (settings.accountName || "—") + '</span></div><div class="info-row"><span class="info-label">Account Number</span><span class="info-value">' +
+        (settings.bankAccount || "—") + "</span></div>";
+      document.getElementById("contactSupportBtn").onclick = function() {
+        if (settings.whatsapp) window.open(settings.whatsapp, "_blank");
+        else showToast("WhatsApp not set by admin");
+      };
+      document.getElementById("depositModal").classList.add("show");
+    }
+    const GF_BANKS = ["AL-Barakah Microfinance Bank", "3Line Card Management Limited", "9 Payment Service Bank", "AB Microfinance Bank", "ABU Microfinance Bank", "AG Mortgage Bank", "AMJU Unique Microfinance Bank", "AMML MFB", "AMOYE MICROFINANCE BANK", "ASO Savings and & Loans", "ASOSavings & Loans", "AccessMobile", "Accion Microfinance Bank", "Ada Microfinance Bank", "Addosser Microfinance Bank", "Adeyemi College Staff Microfinance Bank", "Afekhafe Microfinance Bank", "Afemai Microfinance Bank", "Agosasa Microfinance Bank", "Akpo Microfinance Bank", "Aku Microfinance Bank", "Akuchukwu Microfinance Bank Ltd", "Akwa Savings & Loans Limited", "Apple Microfinance Bank", "Aramoko Microfinance Bank", "Arca Payments", "Arise Microfinance Bank", "Aspire Microfinance Bank Ltd", "Assets Matrix Microfinance Bank", "Assets Microfinance Bank", "Astrapolaris Microfinance Bank", "Atbu Microfinance Bank", "Auchi Microfinance Bank", "Avuenegbe Microfinance Bank", "Aztec Microfinance Bank", "Baobab Microfinance Bank", "Bayero Microfinance Bank", "Benysta Microfinance Bank", "Beststar Microfinance Bank", "Beta-Access Yello", "Bipc Microfinance Bank", "Bishopgate Microfinance Bank", "Blue Investments Microfinance Bank", "Bluewhales Microfinance Bank", "Boctrust Microfinance Bank", "Boi Mf Bank", "Boji Boji Microfinance Bank", "Brent Mortgage Bank", "Brethren Microfinance Bank", "Brightway Microfinance Bank", "Broadview Microfinance Bank Ltd", "Bubayero Microfinance Bank", "Bud Infrastructure Limited", "Business Support Microfinance Bank", "CBN_TSA", "CEMCS Microfinance Bank", "CIT Microfinance Bank", "Calabar Microfinance Bank", "Capitalmetriq Swift Microfinance Bank", "Chanelle Bank", "Chase Microfinance Bank", "Cherish Microfinance Bank", "Chibueze Microfinance Bank", "Chikum Microfinance Bank", "Chukwunenye Microfinance Bank", "Cintrust Microfinance Bank", "CitiBank", "Citizen Trust Microfinance Bank Ltd", "Cloverleaf Microfinance Bank", "Coalcamp Microfinance Bank", "Coastline Microfinance Bank", "Cyberspace Limited", "DOT MICROFINANCE BANK", "Davodani Microfinance Bank", "Daylight Microfinance Bank", "Delta Trust Mortgage Bank", "Diamond Bank", "Dignity Finance", "ENaira", "Eagle Flight Microfinance Bank", "Eartholeum", "E-Finance Microfinance Bank", "E-Connect Microfinance Bank", "Excellent Microfinance Bank", "Eyowo MFB", "FAST CREDIT", "FAST Microfinance Bank", "FBN Mortgages Limited", "FBNMobile", "FBNQUEST Merchant Bank", "FCMB Easy Account", "FEDETH MICROFINANCE BANK", "FET", "Fims Microfinance Bank", "Finca Microfinance Bank", "Firmus MFB", "First Apple Limited", "First Bank of Nigeria", "First City Monument Bank", "First Generation Mortgage Bank", "First Heritage Microfinance Bank", "First Multiple Microfinance Bank", "First Option Microfinance Bank", "First Royal Microfinance Bank", "Firstmidas Microfinance Bank Ltd", "GOLDMAN MICROFINANCE BANK", "GOMBE MICROFINANCE BANK LTD", "GOODNEWS MFB", "GTBank Plc", "GTMobile", "Gabsyn Microfinance Bank", "Garki Microfinance Bank", "Gashua Microfinance Bank", "Gateway Mortgage Bank", "Gbede Microfinance Bank", "Grant MF Bank", "Green Energy Microfinance Bank Ltd", "GreenBank Microfinance Bank", "Greenacres MFB", "Greenville Microfinance Bank", "Greenwich Merchant Bank", "Grooming Microfinance Bank", "Gti Microfinance Bank", "Gwong Microfinance Bank", "Hackman Microfinance Bank", "Haggai Mortgage Bank Limited", "IBILE Microfinance Bank", "IRL Microfinance Bank", "ISLAND MICROFINANCE BANK", "Ibeto Microfinance Bank", "Ibolo Micorfinance Bank Ltd", "Ibom Fadama Microfinance Bank", "Ibu-Aje Microfinance", "Ic Globalmicrofinance Bank", "Ijebu-Ife Microfinance Bank Ltd", "Ikenne Microfinance Bank", "Ikire Microfinance Bank", "Iperu Microfinance Bank", "Isaleoyo Microfinance Bank", "Ishie Microfinance Bank", "Isuofia Microfinance Bank", "Itex Integrated Services Limited", "Iwade Microfinance Bank Ltd", "Iwoama Microfinance Bank", "Iyamoye Microfinance Bank Ltd", "Iyeru Okin Microfinance Bank Ltd", "Iyin Ekiti MFB", "Izon Microfinance Bank", "JAIZ Bank", "Kredi Money Microfinance Bank", "Kuda", "Kwasu Mf Bank", "La Fayette Microfinance Bank", "Lagos Building Investment Company", "Landgold Microfinance Bank", "Lapo Microfinance Bank", "Lavender Microfinance Bank", "Leadremit Limited", "Legend Microfinance Bank", "Letshego MFB", "Lifegate Microfinance Bank Ltd", "Malachy Microfinance Bank", "Manny Microfinance bank", "Maritime Microfinance Bank", "Mayfair Microfinance Bank", "Mayfresh Mortgage Bank", "Medef Microfinance Bank", "Megapraise Microfinance Bank", "Memphis Microfinance Bank", "Mercury MFB", "Meridian Microfinance Bank", "Mgbidi Microfinance Bank", "Microbiz Microfinance Bank", "Money Trust Microfinance Bank", "MoneyBox", "Moniepoint Microfinance Bank", "Moyofade Mf Bank", "Mozfin Microfinance Bank", "Mutual Benefits Microfinance Bank", "Mutual Trust Microfinance Bank", "NIP Virtual Bank", "NIRSAL Microfinance Bank", "NPF MicroFinance Bank", "New Prudential Bank", "Newedge Finance Ltd", "Nibssussd Payments", "Nice Microfinance Bank", "Nigeria Prisonsmicrofinance Bank", "Nkpolu-Ust Microfinance", "Nomba Financial Services Limited", "Nova Merchant Bank", "Nsuk Microfinance Bank", "Numo Microfinance Bank", "Nuture Microfinance Bank", "Nwannegadi Microfinance Bank", "Oluyole Microfinance Bank", "Omiye Microfinance Bank", "Omoluabi Mortgage Bank", "Omoluabi savings and loans", "One Finance", "Opay", "Optimus Bank", "Oraukwu Microfinance Bank", "Orisun MFB", "Orokam Microfinance Bank Ltd", "Oscotech Microfinance Bank", "Osoyol Microfinance Bank", "PayAttitude Online", "Paycom", "Paystack Payments Limited", "Peace Microfinance Bank", "PecanTrust Microfinance Bank", "Peniel Micorfinance Bank Ltd", "Pennywise Microfinance Bank", "Personal Trust Microfinance Bank", "Petra Microfinance Bank", "Pillar Microfinance Bank", "Platinum Mortgage Bank", "Polaris Bank", "Rahama Microfinance Bank", "Rand merchant Bank", "ReadyCash (Parkway)", "Refuge Mortgage Bank", "Regent Microfinance Bank", "Rehoboth Microfinance Bank", "Reliance Microfinance Bank", "RenMoney Microfinance Bank", "Rephidim Microfinance Bank", "Resident Fintech Limited", "Richway Microfinance Bank", "Rigo Microfinance Bank", "Shepherd Trust Microfinance Bank", "Shield Microfinance Bank Ltd", "Shongom Microfinance Bank Ltd", "Sls Mf Bank", "Smartcash Payment Service Bank", "Snow Microfinance Bank", "Solid Allianze Microfinance Bank", "Solidrock Microfinance Bank", "Sparkle", "Spay Business", "Spectrum Microfinance Bank", "Stanbic IBTC @ease wallet", "Supreme Microfinance Bank Ltd", "TANADI MFB (CRUST)", "TASUED MICROFINANCE BANK LTD", "TCF MFB", "TRINITY FINANCIAL SERVICES LIMITED", "TagPay", "Taj Bank Limited", "Tajwallet", "Tangerine Bank", "Uhuru Microfinance Bank", "Ummah Microfinance Bank", "Umuchinemere Procredit Microfinance Bank", "Umunnachi Microfinance Bank", "Unaab Microfinance Bank", "Uniben Microfinance Bank", "Unical Microfinance Bank", "Uniibadan Microfinance Bank", "Unilag Microfinance Bank", "Unilorin Microfinance Bank", "Unimaid Microfinance Bank", "Union Bank", "United Bank for Africa", "Visa Microfinance Bank", "WAYA MICROFINANCE BANK LTD", "Wema Bank", "Wetland Microfinance Bank", "Winview Bank", "Woven Finance", "Xpress Payments", "Xslnce Microfinance Bank", "Yct Microfinance Bank", "Yello Digital Financial Services", "Yes Microfinance Bank", "Yobe Microfinance Bank", "Zenith Bank", "ZenithMobile", "Zikora Microfinance Bank", "Zinternet Nigeria Limited", "Zwallet", "e-Barcs Microfinance Bank", "eTranzact", "Access Bank Plc", "Alpha Morgan Bank Limited", "Citibank Nigeria Limited", "Ecobank Nigeria Limited", "Fidelity Bank Plc", "First Bank of Nigeria Limited", "First City Monument Bank Limited", "Globus Bank Limited", "Guaranty Trust Bank Limited", "Keystone Bank Limited", "Parallex Bank Limited", "Polaris Bank Limited", "Premium Trust Bank", "Providus Bank Plc", "Signature Bank Limited", "Stanbic IBTC Bank Plc", "Standard Chartered Bank Limited", "Sterling Bank Plc", "SunTrust Bank Limited", "Tatum Bank Limited", "Titan Trust Bank Limited", "Union Bank Plc", "United Bank for Africa Plc", "Unity Bank Plc", "Wema Bank Plc", "Zenith Bank Plc", "Coronation Merchant Bank Limited", "FBN Quest Merchant Bank Limited", "FSDH Merchant Bank Limited", "Greenwich Merchant Bank Limited", "Nova Merchant Bank Limited", "Rand Merchant Bank Limited", "AACB Microfinance Bank Limited", "AB Microfinance Bank Limited", "Abatele Microfinance Bank Limited", "ABC Microfinance Bank Limited", "Abia State University Microfinance Bank Limited", "Abigi Microfinance Bank Limited", "Abokie Microfinance Bank Limited", "Abubakar Tafawa Balewa University Microfinance Bank Limited", "Abucoop Microfinance Bank Limited", "Accion Microfinance Bank Limited", "ACE Microfinance Bank Limited", "Acheajebwa Microfinance Bank Limited", "Achina Microfinance Bank Limited", "Active Microfinance Bank Limited", "Acuitv Microfinance Bank Limited", "Ada Microfinance Bank Limited", "Adaigbo Microfinance Bank Limited", "Adazi-Enu Microfinance Bank Limited", "Adazi Nnukwu Microfinance Bank Limited", "Addosser Microfinance Bank Limited", "Advance Microfinance Bank Limited", "Advancly Microfinance Bank Limited", "Afemai Microfinance Bank Limited", "Afotamodi-Ogunola Microfinance Bank Limited", "Agbarho Microfinance Bank Limited", "Agbowu Microfinance Bank Limited", "Agosasa Microfinance Bank Limited", "Aguda-Titun Microfinance Bank Limited", "Aguleri Microfinance Bank Limited", "Ahetou Microfinance Bank Limited", "Ahmadu Bello University Microfinance Bank Limited", "Aivepe Microfinance Bank Limited", "Ajave Jebwo Microfinance Bank Limited", "Ajeko Microfinance Bank Limited", "Ajewole Microfinance Bank Limited", "Ajikobi Microfinance Bank Limited", "Ajingi Microfinance Bank Limited", "Ajiya Microfinance Bank Limited", "Ajose Microfinance Bank Limited", "Ajuta Microfinance Bank Limited", "Akalabo Microfinance Bank Limited", "Akcofed Microfinance Bank Limited", "Akokwa Microfinance Bank Limited", "Akpo Microfinance Bank Limited", "Aku-diewa Microfinance Bank Limited", "Akuchukwu Microfinance Bank Limited", "Akwengwa Microfinance Bank Limited", "Al.Hayat Microfinance Bank Limited", "Alache Microfinance Bank Limited", "Al-Barakah Microfinance Bank Limited", "Al-Basu Microfinance Bank Limited", "Alekun Microfinance Bank Limited", "Algreb Microfinance Bank Limited", "Aliero Microfinance Bank Limited", "Alkaleri Microfinance Bank Limited", "All workers Microfinance Bank Limited", "Aloave Microfinance Bank Limited", "Alor Microfinance Bank Limited", "Alpha Kapital Microfinance Bank Limited", "Altitude Microfinance Bank Limited", "Alvana Microfinance Bank Limited", "Amaifeke Microfinance Bank Limited", "Amazu Microfinance Bank Limited", "Amba Microfinance Bank Limited", "Amegy Microfinance Bank Limited", "AMJU Microfinance Bank Limited", "AMML Microfinance Bank Limited", "Amove Microfinance Bank Limited", "Amram Microfinance Bank Limited", "Amucha Microfinance Bank Limited", "Amuro Microfinance Bank Limited", "Anchorage Microfinance Bank Limited", "Aniocha Microfinance Bank Limited", "Annointed Microfinance Bank Limited", "Anya Microfinance Bank LimitedAogo", "Aogo Microfinance Bank Limited", "Apa Microfinance Bank Limited", "Apeks Microfinance Bank Limited", "Apex Trust Microfinance Bank Limited", "Apple Microfinance Bank Limited", "Aramoko Microfinance Bank Limited", "Arochukwu Microfinance Bank Limited", "Arondizuogo Microfinance Bank Limited", "Asha Microfinance Bank Limited"];
+    function populateBankSelect(selectedName) {
+      const select = document.getElementById('userBankName');
+      if (!select) return;
+      const selected = selectedName || '';
+      select.innerHTML = '<option value="">Select bank</option>' + GF_BANKS.map(function(name){
+        return '<option value="'+escapeHtml(name)+'">'+escapeHtml(name)+'</option>';
+      }).join('');
+      select.value = selected;
+    }
+
+    function openAddBank() {
+      populateBankSelect(currentUser.bankName || '');
+      document.getElementById('userBankAcct').value = currentUser.bankAccount || '';
+      document.getElementById('userBankHolder').value = currentUser.bankHolder || currentUser.fullName || '';
+      document.getElementById('bankModal').classList.add('show');
+    }
+    function closeModals() {
+      document.querySelectorAll(".modal-bg").forEach(function(m) { m.classList.remove("show"); });
+    }
+
+    function getPendingWithdrawalsForUser(user){
+      return (fullData?.withdrawals||[]).filter(function(w){return w && w.email===user.email && String(w.status||'pending').toLowerCase()==='pending';});
+    }
+    function pendingWithdrawTotal(user){ return getPendingWithdrawalsForUser(user).reduce(function(sum,w){return sum+Number(w.amount||0)},0); }
+    function money(n){return '₦'+Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2,maximumFractionDigits:2});}
+    function getConfirmedWithdrawalAccount(user){
+      user=user||{};
+      var wa=user.withdrawalAccount||{};
+      var bankName=String(user.bankName||wa.bankName||'').trim();
+      var bankAccount=String(user.bankAccount||wa.accountNumber||'').trim();
+      var bankHolder=String(user.bankHolder||wa.accountName||user.fullName||'').trim();
+      return {bankName:bankName,bankAccount:bankAccount,bankHolder:bankHolder};
+    }
+    function updateWithdrawBankSummary(){
+      const box=document.getElementById('withdrawBankDetails'); if(!box)return;
+      var wa=getConfirmedWithdrawalAccount(currentUser);
+      if(wa.bankName && /^\d{10}$/.test(wa.bankAccount) && wa.bankHolder){
+        box.innerHTML='<div class="summary-line"><span class="summary-label">Bank</span><span class="summary-value">'+escapeHtml(wa.bankName)+'</span></div><div class="summary-line"><span class="summary-label">Account Name</span><span class="summary-value">'+escapeHtml(wa.bankHolder)+'</span></div><div class="summary-line"><span class="summary-label">Account Number</span><span class="summary-value">'+escapeHtml(wa.bankAccount)+'</span></div>';
+      } else {
+        box.innerHTML='<div class="product-desc" style="margin:0">No confirmed bank account is available.</div><button class="btn btn-gold" style="width:100%;margin-top:10px" onclick="location.href=\'add-bank.html\'">Add Bank Account</button>';
+      }
+    }
+    function openWithdraw(){
+      updateWithdrawBankSummary();
+      document.getElementById('wdAmount').value='';
+      document.getElementById('withdrawModal').classList.add('show');
+    }
+    function startWithdrawalProcessing(amount, callback){
+      const modal=document.getElementById('withdrawProcessing'), bar=document.getElementById('withdrawProgressBar'), count=document.getElementById('withdrawCountdown'), text=document.getElementById('withdrawProcessText');
+      modal.classList.add('show'); bar.style.width='0%'; count.textContent='10'; text.textContent='Please wait while your request is securely prepared.';
+      let left=10; const timer=setInterval(function(){left--; count.textContent=String(Math.max(0,left)); bar.style.width=((10-left)/10*100)+'%'; if(left<=0){clearInterval(timer); callback();}},1000);
+    }
+    async function submitWithdraw(){
+      var amount=Number(document.getElementById('wdAmount').value);
+      if(!amount || amount<50000){showToast('Amount is not eligible for withdrawal. Minimum withdrawal is ₦50,000.');return;}
+      if(amount>4000000){showToast('Withdrawal amount cannot exceed ₦4,000,000.');return;}
+      var withdrawalAccount=getConfirmedWithdrawalAccount(currentUser);
+      if(!withdrawalAccount.bankName || !/^\d{10}$/.test(withdrawalAccount.bankAccount) || !withdrawalAccount.bankHolder){showToast('Confirm your bank details before withdrawing.');return;}
+      if(amount>Number(currentUser.balance||0)){showToast('Insufficient available balance.');return;}
+      const btn=document.getElementById('withdrawConfirmBtn'); if(btn){btn.disabled=true;btn.textContent='Processing…';}
+      closeModals();
+      startWithdrawalProcessing(amount, async function(){
+        try{
+          stopFrontendSync();
+          var now=new Date().toISOString();
+          fullData.withdrawals=fullData.withdrawals||[];
+          fullData.withdrawals.push({id:'WD'+Date.now(),email:currentUser.email,fullName:currentUser.fullName,amount:amount,bankName:withdrawalAccount.bankName,bankAccount:withdrawalAccount.bankAccount,bankHolder:withdrawalAccount.bankHolder,status:'pending',date:now,balanceDebited:true});
+          var idx=fullData.users.findIndex(function(u){return u.email===currentUser.email;});
+          if(idx<0)throw new Error('User not found');
+          fullData.users[idx].balance=Math.max(0,Number(fullData.users[idx].balance||0)-amount);
+          fullData.users[idx].transactions=fullData.users[idx].transactions||[];
+          fullData.users[idx].transactions.push({id:'TXWD'+Date.now(),title:'Pending withdrawal',memo:'Withdrawal to '+withdrawalAccount.bankName,amount:-amount,date:now,type:'withdrawal',status:'pending',withdrawalId:fullData.withdrawals[fullData.withdrawals.length-1].id});
+          await saveBin(fullData);
+          document.getElementById('withdrawProcessing').classList.remove('show');
+          showToast('Your money will be credited to your bank account within 20 mins.');
+          if(btn){btn.disabled=false;btn.textContent='Confirm Withdraw';}
+          await loadAll(); startDashboardLiveSync();
+        }catch(e){
+          document.getElementById('withdrawProcessing').classList.remove('show');
+          if(btn){btn.disabled=false;btn.textContent='Confirm Withdraw';}
+          startDashboardLiveSync(); showToast('Withdrawal could not be submitted. Please try again.'); console.error(e);
+        }
+      });
+    }
+
+    async function saveUserBank(){
+      var bankName=document.getElementById('userBankName').value.trim();
+      var bankAccount=document.getElementById('userBankAcct').value.trim();
+      var bankHolder=document.getElementById('userBankHolder').value.trim();
+      if(!bankName){showToast('Select a bank from the list');return;}
+      if(!/^\d{10}$/.test(bankAccount)){showToast('Enter a valid 10-digit account number');return;}
+      if(!bankHolder){showToast('Enter the account name');return;}
+      try{
+        stopFrontendSync(); var idx=fullData.users.findIndex(function(u){return u.email===currentUser.email;}); if(idx<0)throw new Error('User not found');
+        fullData.users[idx].bankName=bankName;
+        fullData.users[idx].bankAccount=bankAccount;
+        fullData.users[idx].bankHolder=bankHolder;
+        fullData.users[idx].withdrawalAccount={bankName:bankName,accountNumber:bankAccount,accountName:bankHolder,updatedAt:new Date().toISOString()};
+        await saveBin(fullData);
+        currentUser=fullData.users[idx];
+        setLoggedUser(currentUser);
+        closeModals();
+        showToast('Withdrawal account confirmed and added to your profile.');
+        renderAll();
+        liveSyncFingerprint=makeLiveSyncFingerprint(fullData,currentUser);
+        startDashboardLiveSync();
+      }catch(e){startDashboardLiveSync();showToast('Unable to save bank details.');console.error(e)}
+    }
+
+    function investProduct(id) {
+      var p = products.find(function(x) { return x.id === id; });
+      if (!p) return;
+      showToast("Deposit ₦" + Number(p.price).toLocaleString() + " to invest in " + p.name);
+      openDeposit();
+    }
+    function copyCode() {
+      var code = document.getElementById("inviteCode").textContent;
+      navigator.clipboard.writeText(code).then(function() { showToast("Code copied!"); }).catch(function() { showToast("Copy failed"); });
+    }
+    async function openEarnings(){
+      var amount=Number(currentUser.inviteEarnings||0);
+      document.getElementById('earningsText').textContent=amount>=30000?'Eligible earnings: ₦'+amount.toLocaleString()+'.':'Amount is not yet eligible to be moved to balance. Minimum is ₦30,000.';
+      document.getElementById('moveEarningsBtn').style.display=amount>=30000?'block':'none';
+      document.getElementById('earningsMsg').textContent='';
+      document.getElementById('earningsModal').classList.add('show');
+    }
+    function closeEarnings(){document.getElementById('earningsModal').classList.remove('show')}
+    async function moveEarnings(){
+      var btn=document.getElementById('moveEarningsBtn'),msg=document.getElementById('earningsMsg');
+      if(Number(currentUser.inviteEarnings||0)<30000){msg.textContent='Amount is not yet eligible to be moved to balance.';return;}
+      btn.disabled=true;msg.textContent='Processing transfer…';
+      var start=Date.now();var spin=setInterval(()=>{msg.textContent='Processing transfer… '+Math.min(8,Math.floor((Date.now()-start)/1000)+1)+'s'},1000);
+      setTimeout(async()=>{clearInterval(spin);msg.textContent='Processing complete.';btn.disabled=false},8000);
+    }
+    async function loadInbox(){
+      try{var d=await fetchBin(),me=(d.users||[]).find(x=>x.email===currentUser.email),items=me?.inbox||[];
+        var box=document.getElementById('inboxList');box.innerHTML=items.length?items.slice().reverse().map((m,i)=>'<div class="product-card"><div class="product-name">'+escapeHtml(m.title||'Message')+'</div><div class="product-desc">'+escapeHtml(m.body||'')+'</div><div class="small">'+(m.date?new Date(m.date).toLocaleString():'')+'</div></div>').join(''):'<div class="empty">No messages</div>';
+        var unread=items.filter(m=>!m.opened).length,b=document.getElementById('inboxBadge');b.textContent=unread;b.style.display=unread?'grid':'none';
+      }catch(e){}
+    }
+    async function markInboxRead(){try{var d=await fetchBin(),idx=d.users.findIndex(x=>x.email===currentUser.email);if(idx<0)return;(d.users[idx].inbox||[]).forEach(m=>m.opened=true);await saveBin(d);loadInbox()}catch(e){}}
+    async function openInbox(){showPage('inbox');await markInboxRead();}
+    function copyReferralLink(){var code=document.getElementById('inviteCode').textContent;var link=location.origin+location.pathname.replace(/dashboard\.html$/,'signup.html')+'?ref='+encodeURIComponent(code);navigator.clipboard.writeText(link).then(()=>showToast('Referral link copied')).catch(()=>showToast('Copy failed'));}
+    function closeClaim(){document.getElementById('claimModal').classList.remove('show')}
+    function openClaim(){document.getElementById('claimCodeInput').value='';document.getElementById('claimMsg').textContent='';document.getElementById('claimModal').classList.add('show')}
+    async function verifyClaimCode(){
+      var code=document.getElementById('claimCodeInput').value.trim().toUpperCase(),msg=document.getElementById('claimMsg');if(!code){msg.textContent='Insert your code.';return;}
+      try{var d=await fetchBin(),claim=(d.claimCodes||[]).find(c=>String(c.code).toUpperCase()===code);if(!claim){msg.textContent='Invalid verification code.';return;}if(claim.used){msg.textContent='This code has already been used.';return;}if(claim.userId!==currentUser.id){msg.textContent='This code is not assigned to this customer.';return;}
+        claim.used=true;claim.usedAt=new Date().toISOString();d.claimRequests=d.claimRequests||[];var claimProduct=(d.products||[]).find(function(p){return String(p.id)===String(claim.productId)});
+        var claimAmount=(claimProduct&&/starter/i.test(String(claimProduct.name||'')))?50000:Number((claimProduct&&claimProduct.claimAmount)|| (claimProduct&&claimProduct.price)||0);
+        d.claimRequests.push({id:'CLM-'+Date.now(),code,customerId:currentUser.id,email:currentUser.email,productId:claim.productId,productName:claim.productName,claimAmount:claimAmount,status:'pending',date:new Date().toISOString()});await saveBin(d);msg.textContent='Code verified. The amount will be credited to your balance shortly.';
+      }catch(e){msg.textContent='Unable to verify code right now.'}
+    }
+
+    function logout() {
+      clearLoggedUser();
+      location.href = "login.html";
+    }
+  
+    // Public activity notifications are sourced only from real records in the shared data store.
+    // No fabricated customer names or transaction amounts are generated.
+    let activityEvents = [];
+    let activityUsed = new Set();
+    let activityHideTimer = null;
+    function buildActivityEvents(data){
+      const events=[];
+      (data.withdrawals||[]).forEach(w=>{
+        if(!w || !w.fullName || !Number(w.amount)) return;
+        const amount=Number(w.amount);
+        if(amount<50000 || amount>4000000) return;
+        events.push({id:'wd:'+w.id, name:w.fullName, type:'just requested a withdrawal', amount:'₦'+amount.toLocaleString()});
+      });
+      (data.users||[]).forEach(u=>{
+        (u.transactions||[]).forEach((tx,i)=>{
+          if(String(tx.type||'').toLowerCase()!=='credit') return;
+          if(!/referral/i.test(String(tx.title||tx.memo||''))) return;
+          const amount=Number(tx.amount||0);
+          if(amount<=0) return;
+          events.push({id:'rf:'+u.id+':'+i, name:u.fullName||'A customer', type:'just earned a referral reward', amount:'+₦'+amount.toLocaleString()});
+        });
+      });
+      return events;
+    }
+    function hideActivity(){
+      const el=document.getElementById('activityPopup'); if(!el) return;
+      el.classList.remove('show');
+      if(activityHideTimer){clearTimeout(activityHideTimer);activityHideTimer=null;}
+    }
+    function showActivity(ev){
+      const el=document.getElementById('activityPopup'); if(!el) return;
+      document.getElementById('communityAvatar').textContent=(ev.name||'GF').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+      document.getElementById('communityName').textContent=ev.name;
+      document.getElementById('communityType').textContent=ev.type;
+      document.getElementById('communityAmount').textContent=ev.amount;
+      el.classList.add('show');
+      if(activityHideTimer) clearTimeout(activityHideTimer);
+      activityHideTimer=setTimeout(hideActivity,3000);
+    }
+    function scheduleActivityPopup(){
+      setTimeout(()=>{
+        if(document.hidden){scheduleActivityPopup();return;}
+        if(activityEvents.length){
+          let pool=activityEvents.filter(e=>!activityUsed.has(e.id));
+          if(!pool.length){activityUsed.clear();pool=activityEvents.slice();}
+          const ev=pool[Math.floor(Math.random()*pool.length)];
+          activityUsed.add(ev.id);
+          showActivity(ev);
+        }
+        scheduleActivityPopup();
+      },[10000,12000,15000][Math.floor(Math.random()*3)]);
+    }
+    function refreshActivityEvents(data){ activityEvents=buildActivityEvents(data); }
+    refreshActivityEvents(fullData);
+    scheduleActivityPopup();
+
+</script>
+<div class="modal-bg" id="earningsModal"><div class="modal"><h3>Earn</h3><p id="earningsText">Your earnings are available for review.</p><div class="actions"><button class="btn btn-dark" onclick="closeEarnings()">Dismiss</button><button class="btn btn-gold" id="moveEarningsBtn" onclick="moveEarnings()">Move earnings to balance</button></div><p class="small" id="earningsMsg"></p></div></div>
+<div class="modal-bg" id="claimModal"><div class="modal"><h3>Verify &amp; Claim</h3><p class="muted">Insert your one-time verification code.</p><input autocomplete="off" id="claimCodeInput" placeholder="Insert your code"/><button class="btn btn-gold" onclick="verifyClaimCode()" style="width:100%;margin-top:12px">Verify Code</button><p class="small" id="claimMsg"></p><button class="btn btn-dark" onclick="closeClaim()" style="width:100%;margin-top:10px">Close</button></div></div>
+</body>
+</html>

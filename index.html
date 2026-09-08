@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f0c06" />
+  <title>Gold Fortune</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-2.png" />
+  <script>
+    try {
+      if (localStorage.getItem("gf_user")) {
+        location.replace("dashboard.html");
+      } else {
+        location.replace("login.html");
+      }
+    } catch (e) {
+      location.replace("login.html");
+    }
+  </script>
+<link rel="stylesheet" href="premium.css"></head>
+<body style="background:#0f0c06;color:#a08b5c;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;">
+  Loading...
+</body>
+</html>

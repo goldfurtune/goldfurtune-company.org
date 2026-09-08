@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0f0c06"><title>Gold Fortune — Add Bank</title><link rel="icon" href="icon-2.png"><link rel="stylesheet" href="premium.css"><style>
+:root{--bg:#0f0c06;--card:#1c1710;--border:#4a3c24;--gold:#e8c547;--text:#f5eedc;--muted:#a79778}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 50% 0%,#2a2114 0,#0f0c06 45%);color:var(--text);font-family:DM Sans,Arial,sans-serif;min-height:100vh}
+.wrap{width:min(620px,100%);margin:auto;padding:18px 16px 48px} .top{display:flex;align-items:center;gap:14px;margin:8px 0 22px} .back{width:44px;height:44px;border:1px solid var(--border);border-radius:13px;display:grid;place-items:center;color:var(--gold);text-decoration:none;font-size:30px} .top h1{font:700 1.85rem 'Playfair Display',serif;margin:0}
+.card{background:linear-gradient(145deg,#272016,#19140d);border:1px solid rgba(232,197,71,.32);border-radius:24px;padding:24px;box-shadow:0 20px 55px rgba(0,0,0,.28)} .title{font:700 1.45rem 'Playfair Display',serif;margin:0 0 7px} .sub{color:var(--muted);font-size:.88rem;line-height:1.55;margin:0 0 20px}
+label{display:block;color:var(--muted);font-size:.84rem;font-weight:700;margin:0 0 7px} .field{margin-bottom:16px} select,input{width:100%;height:52px;border-radius:13px;border:1px solid var(--border);background:#14100b;color:var(--text);padding:0 14px;font:inherit;outline:none} select:focus,input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(232,197,71,.08)} select option{background:#15120d;color:#f5eedc}
+.hint{font-size:.72rem;color:var(--muted);margin-top:6px} .btn{width:100%;min-height:52px;border-radius:15px;border:1px solid var(--gold);background:linear-gradient(180deg,#ffc936,#e9ad1f);color:#171207;font-weight:800;cursor:pointer;font:800 .95rem DM Sans,Arial,sans-serif} .btn:disabled{opacity:.6;cursor:not-allowed} .btn.outline{margin-top:10px;background:transparent;color:var(--gold)}
+.msg{display:none;margin:0 0 16px;padding:12px 14px;border-radius:12px;font-size:.84rem;border:1px solid var(--border)} .msg.show{display:block} .msg.ok{color:#dff5df;border-color:#3f7145;background:rgba(47,125,57,.12)} .msg.err{color:#ffd8d8;border-color:#8b4242;background:rgba(150,40,40,.12)}
+.saved{display:none;margin-top:18px;padding:15px;border-radius:15px;background:rgba(232,197,71,.06);border:1px solid rgba(232,197,71,.2)} .saved.show{display:block} .saved-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid rgba(232,197,71,.1);font-size:.84rem} .saved-row:last-child{border-bottom:0} .saved-row span:first-child{color:var(--muted)} .saved-row span:last-child{font-weight:700;text-align:right;word-break:break-word}
+@media(max-width:520px){.wrap{padding:12px 12px 36px}.card{padding:20px 16px;border-radius:20px}.top h1{font-size:1.6rem}}
+</style></head><body><main class="wrap"><div class="top"><a class="back" href="dashboard.html" aria-label="Back">‹</a><h1>Add Bank</h1></div><section class="card"><h2 class="title">Withdrawal Account</h2><p class="sub">Select your bank, enter the account details, then confirm to add the account to your customer profile.</p><div id="msg" class="msg"></div><form id="bankForm" novalidate><div class="field"><label for="bankName">Bank Name</label><select id="bankName" required><option value="">Select bank</option></select><div class="hint">{len(banks)} selectable Nigerian bank and financial-institution entries.</div></div><div class="field"><label for="accountNumber">Account Number</label><input id="accountNumber" inputmode="numeric" autocomplete="off" maxlength="10" placeholder="Enter 10-digit account number" required><div class="hint">Enter exactly 10 digits.</div></div><div class="field"><label for="accountName">Account Name</label><input id="accountName" autocomplete="name" placeholder="Enter name on account" required></div><button class="btn" id="confirmBtn" type="submit">Confirm Bank</button></form><div class="saved" id="saved"><div class="saved-row"><span>Bank</span><span id="savedBank">—</span></div><div class="saved-row"><span>Account Name</span><span id="savedName">—</span></div><div class="saved-row"><span>Account Number</span><span id="savedNumber">—</span></div></div><a class="btn outline" href="dashboard.html">Return to Dashboard</a></section></main><script src="app.js"></script><script>
+const GF_BANKS=["AL-Barakah Microfinance Bank", "3Line Card Management Limited", "9 Payment Service Bank", "AB Microfinance Bank", "ABU Microfinance Bank", "AG Mortgage Bank", "AMJU Unique Microfinance Bank", "AMML MFB", "AMOYE MICROFINANCE BANK", "ASO Savings and & Loans", "ASOSavings & Loans", "AccessMobile", "Accion Microfinance Bank", "Ada Microfinance Bank", "Addosser Microfinance Bank", "Adeyemi College Staff Microfinance Bank", "Afekhafe Microfinance Bank", "Afemai Microfinance Bank", "Agosasa Microfinance Bank", "Akpo Microfinance Bank", "Aku Microfinance Bank", "Akuchukwu Microfinance Bank Ltd", "Akwa Savings & Loans Limited", "Apple Microfinance Bank", "Aramoko Microfinance Bank", "Arca Payments", "Arise Microfinance Bank", "Aspire Microfinance Bank Ltd", "Assets Matrix Microfinance Bank", "Assets Microfinance Bank", "Astrapolaris Microfinance Bank", "Atbu Microfinance Bank", "Auchi Microfinance Bank", "Avuenegbe Microfinance Bank", "Aztec Microfinance Bank", "Baobab Microfinance Bank", "Bayero Microfinance Bank", "Benysta Microfinance Bank", "Beststar Microfinance Bank", "Beta-Access Yello", "Bipc Microfinance Bank", "Bishopgate Microfinance Bank", "Blue Investments Microfinance Bank", "Bluewhales Microfinance Bank", "Boctrust Microfinance Bank", "Boi Mf Bank", "Boji Boji Microfinance Bank", "Brent Mortgage Bank", "Brethren Microfinance Bank", "Brightway Microfinance Bank", "Broadview Microfinance Bank Ltd", "Bubayero Microfinance Bank", "Bud Infrastructure Limited", "Business Support Microfinance Bank", "CBN_TSA", "CEMCS Microfinance Bank", "CIT Microfinance Bank", "Calabar Microfinance Bank", "Capitalmetriq Swift Microfinance Bank", "Chanelle Bank", "Chase Microfinance Bank", "Cherish Microfinance Bank", "Chibueze Microfinance Bank", "Chikum Microfinance Bank", "Chukwunenye Microfinance Bank", "Cintrust Microfinance Bank", "CitiBank", "Citizen Trust Microfinance Bank Ltd", "Cloverleaf Microfinance Bank", "Coalcamp Microfinance Bank", "Coastline Microfinance Bank", "Cyberspace Limited", "DOT MICROFINANCE BANK", "Davodani Microfinance Bank", "Daylight Microfinance Bank", "Delta Trust Mortgage Bank", "Diamond Bank", "Dignity Finance", "ENaira", "Eagle Flight Microfinance Bank", "Eartholeum", "E-Finance Microfinance Bank", "E-Connect Microfinance Bank", "Excellent Microfinance Bank", "Eyowo MFB", "FAST CREDIT", "FAST Microfinance Bank", "FBN Mortgages Limited", "FBNMobile", "FBNQUEST Merchant Bank", "FCMB Easy Account", "FEDETH MICROFINANCE BANK", "FET", "Fims Microfinance Bank", "Finca Microfinance Bank", "Firmus MFB", "First Apple Limited", "First Bank of Nigeria", "First City Monument Bank", "First Generation Mortgage Bank", "First Heritage Microfinance Bank", "First Multiple Microfinance Bank", "First Option Microfinance Bank", "First Royal Microfinance Bank", "Firstmidas Microfinance Bank Ltd", "GOLDMAN MICROFINANCE BANK", "GOMBE MICROFINANCE BANK LTD", "GOODNEWS MFB", "GTBank Plc", "GTMobile", "Gabsyn Microfinance Bank", "Garki Microfinance Bank", "Gashua Microfinance Bank", "Gateway Mortgage Bank", "Gbede Microfinance Bank", "Grant MF Bank", "Green Energy Microfinance Bank Ltd", "GreenBank Microfinance Bank", "Greenacres MFB", "Greenville Microfinance Bank", "Greenwich Merchant Bank", "Grooming Microfinance Bank", "Gti Microfinance Bank", "Gwong Microfinance Bank", "Hackman Microfinance Bank", "Haggai Mortgage Bank Limited", "IBILE Microfinance Bank", "IRL Microfinance Bank", "ISLAND MICROFINANCE BANK", "Ibeto Microfinance Bank", "Ibolo Micorfinance Bank Ltd", "Ibom Fadama Microfinance Bank", "Ibu-Aje Microfinance", "Ic Globalmicrofinance Bank", "Ijebu-Ife Microfinance Bank Ltd", "Ikenne Microfinance Bank", "Ikire Microfinance Bank", "Iperu Microfinance Bank", "Isaleoyo Microfinance Bank", "Ishie Microfinance Bank", "Isuofia Microfinance Bank", "Itex Integrated Services Limited", "Iwade Microfinance Bank Ltd", "Iwoama Microfinance Bank", "Iyamoye Microfinance Bank Ltd", "Iyeru Okin Microfinance Bank Ltd", "Iyin Ekiti MFB", "Izon Microfinance Bank", "JAIZ Bank", "Kredi Money Microfinance Bank", "Kuda", "Kwasu Mf Bank", "La Fayette Microfinance Bank", "Lagos Building Investment Company", "Landgold Microfinance Bank", "Lapo Microfinance Bank", "Lavender Microfinance Bank", "Leadremit Limited", "Legend Microfinance Bank", "Letshego MFB", "Lifegate Microfinance Bank Ltd", "Malachy Microfinance Bank", "Manny Microfinance bank", "Maritime Microfinance Bank", "Mayfair Microfinance Bank", "Mayfresh Mortgage Bank", "Medef Microfinance Bank", "Megapraise Microfinance Bank", "Memphis Microfinance Bank", "Mercury MFB", "Meridian Microfinance Bank", "Mgbidi Microfinance Bank", "Microbiz Microfinance Bank", "Money Trust Microfinance Bank", "MoneyBox", "Moniepoint Microfinance Bank", "Moyofade Mf Bank", "Mozfin Microfinance Bank", "Mutual Benefits Microfinance Bank", "Mutual Trust Microfinance Bank", "NIP Virtual Bank", "NIRSAL Microfinance Bank", "NPF MicroFinance Bank", "New Prudential Bank", "Newedge Finance Ltd", "Nibssussd Payments", "Nice Microfinance Bank", "Nigeria Prisonsmicrofinance Bank", "Nkpolu-Ust Microfinance", "Nomba Financial Services Limited", "Nova Merchant Bank", "Nsuk Microfinance Bank", "Numo Microfinance Bank", "Nuture Microfinance Bank", "Nwannegadi Microfinance Bank", "Oluyole Microfinance Bank", "Omiye Microfinance Bank", "Omoluabi Mortgage Bank", "Omoluabi savings and loans", "One Finance", "Opay", "Optimus Bank", "Oraukwu Microfinance Bank", "Orisun MFB", "Orokam Microfinance Bank Ltd", "Oscotech Microfinance Bank", "Osoyol Microfinance Bank", "PayAttitude Online", "Paycom", "Paystack Payments Limited", "Peace Microfinance Bank", "PecanTrust Microfinance Bank", "Peniel Micorfinance Bank Ltd", "Pennywise Microfinance Bank", "Personal Trust Microfinance Bank", "Petra Microfinance Bank", "Pillar Microfinance Bank", "Platinum Mortgage Bank", "Polaris Bank", "Rahama Microfinance Bank", "Rand merchant Bank", "ReadyCash (Parkway)", "Refuge Mortgage Bank", "Regent Microfinance Bank", "Rehoboth Microfinance Bank", "Reliance Microfinance Bank", "RenMoney Microfinance Bank", "Rephidim Microfinance Bank", "Resident Fintech Limited", "Richway Microfinance Bank", "Rigo Microfinance Bank", "Shepherd Trust Microfinance Bank", "Shield Microfinance Bank Ltd", "Shongom Microfinance Bank Ltd", "Sls Mf Bank", "Smartcash Payment Service Bank", "Snow Microfinance Bank", "Solid Allianze Microfinance Bank", "Solidrock Microfinance Bank", "Sparkle", "Spay Business", "Spectrum Microfinance Bank", "Stanbic IBTC @ease wallet", "Supreme Microfinance Bank Ltd", "TANADI MFB (CRUST)", "TASUED MICROFINANCE BANK LTD", "TCF MFB", "TRINITY FINANCIAL SERVICES LIMITED", "TagPay", "Taj Bank Limited", "Tajwallet", "Tangerine Bank", "Uhuru Microfinance Bank", "Ummah Microfinance Bank", "Umuchinemere Procredit Microfinance Bank", "Umunnachi Microfinance Bank", "Unaab Microfinance Bank", "Uniben Microfinance Bank", "Unical Microfinance Bank", "Uniibadan Microfinance Bank", "Unilag Microfinance Bank", "Unilorin Microfinance Bank", "Unimaid Microfinance Bank", "Union Bank", "United Bank for Africa", "Visa Microfinance Bank", "WAYA MICROFINANCE BANK LTD", "Wema Bank", "Wetland Microfinance Bank", "Winview Bank", "Woven Finance", "Xpress Payments", "Xslnce Microfinance Bank", "Yct Microfinance Bank", "Yello Digital Financial Services", "Yes Microfinance Bank", "Yobe Microfinance Bank", "Zenith Bank", "ZenithMobile", "Zikora Microfinance Bank", "Zinternet Nigeria Limited", "Zwallet", "e-Barcs Microfinance Bank", "eTranzact", "Access Bank Plc", "Alpha Morgan Bank Limited", "Citibank Nigeria Limited", "Ecobank Nigeria Limited", "Fidelity Bank Plc", "First Bank of Nigeria Limited", "First City Monument Bank Limited", "Globus Bank Limited", "Guaranty Trust Bank Limited", "Keystone Bank Limited", "Parallex Bank Limited", "Polaris Bank Limited", "Premium Trust Bank", "Providus Bank Plc", "Signature Bank Limited", "Stanbic IBTC Bank Plc", "Standard Chartered Bank Limited", "Sterling Bank Plc", "SunTrust Bank Limited", "Tatum Bank Limited", "Titan Trust Bank Limited", "Union Bank Plc", "United Bank for Africa Plc", "Unity Bank Plc", "Wema Bank Plc", "Zenith Bank Plc", "Coronation Merchant Bank Limited", "FBN Quest Merchant Bank Limited", "FSDH Merchant Bank Limited", "Greenwich Merchant Bank Limited", "Nova Merchant Bank Limited", "Rand Merchant Bank Limited", "AACB Microfinance Bank Limited", "AB Microfinance Bank Limited", "Abatele Microfinance Bank Limited", "ABC Microfinance Bank Limited", "Abia State University Microfinance Bank Limited", "Abigi Microfinance Bank Limited", "Abokie Microfinance Bank Limited", "Abubakar Tafawa Balewa University Microfinance Bank Limited", "Abucoop Microfinance Bank Limited", "Accion Microfinance Bank Limited", "ACE Microfinance Bank Limited", "Acheajebwa Microfinance Bank Limited", "Achina Microfinance Bank Limited", "Active Microfinance Bank Limited", "Acuitv Microfinance Bank Limited", "Ada Microfinance Bank Limited", "Adaigbo Microfinance Bank Limited", "Adazi-Enu Microfinance Bank Limited", "Adazi Nnukwu Microfinance Bank Limited", "Addosser Microfinance Bank Limited", "Advance Microfinance Bank Limited", "Advancly Microfinance Bank Limited", "Afemai Microfinance Bank Limited", "Afotamodi-Ogunola Microfinance Bank Limited", "Agbarho Microfinance Bank Limited", "Agbowu Microfinance Bank Limited", "Agosasa Microfinance Bank Limited", "Aguda-Titun Microfinance Bank Limited", "Aguleri Microfinance Bank Limited", "Ahetou Microfinance Bank Limited", "Ahmadu Bello University Microfinance Bank Limited", "Aivepe Microfinance Bank Limited", "Ajave Jebwo Microfinance Bank Limited", "Ajeko Microfinance Bank Limited", "Ajewole Microfinance Bank Limited", "Ajikobi Microfinance Bank Limited", "Ajingi Microfinance Bank Limited", "Ajiya Microfinance Bank Limited", "Ajose Microfinance Bank Limited", "Ajuta Microfinance Bank Limited", "Akalabo Microfinance Bank Limited", "Akcofed Microfinance Bank Limited", "Akokwa Microfinance Bank Limited", "Akpo Microfinance Bank Limited", "Aku-diewa Microfinance Bank Limited", "Akuchukwu Microfinance Bank Limited", "Akwengwa Microfinance Bank Limited", "Al.Hayat Microfinance Bank Limited", "Alache Microfinance Bank Limited", "Al-Barakah Microfinance Bank Limited", "Al-Basu Microfinance Bank Limited", "Alekun Microfinance Bank Limited", "Algreb Microfinance Bank Limited", "Aliero Microfinance Bank Limited", "Alkaleri Microfinance Bank Limited", "All workers Microfinance Bank Limited", "Aloave Microfinance Bank Limited", "Alor Microfinance Bank Limited", "Alpha Kapital Microfinance Bank Limited", "Altitude Microfinance Bank Limited", "Alvana Microfinance Bank Limited", "Amaifeke Microfinance Bank Limited", "Amazu Microfinance Bank Limited", "Amba Microfinance Bank Limited", "Amegy Microfinance Bank Limited", "AMJU Microfinance Bank Limited", "AMML Microfinance Bank Limited", "Amove Microfinance Bank Limited", "Amram Microfinance Bank Limited", "Amucha Microfinance Bank Limited", "Amuro Microfinance Bank Limited", "Anchorage Microfinance Bank Limited", "Aniocha Microfinance Bank Limited", "Annointed Microfinance Bank Limited", "Anya Microfinance Bank LimitedAogo", "Aogo Microfinance Bank Limited", "Apa Microfinance Bank Limited", "Apeks Microfinance Bank Limited", "Apex Trust Microfinance Bank Limited", "Apple Microfinance Bank Limited", "Aramoko Microfinance Bank Limited", "Arochukwu Microfinance Bank Limited", "Arondizuogo Microfinance Bank Limited", "Asha Microfinance Bank Limited"];
+let currentUser=getLoggedUser();
+const msg=document.getElementById('msg');
+const form=document.getElementById('bankForm');
+const btn=document.getElementById('confirmBtn');
+
+function showMsg(text,type){
+  msg.textContent=text;
+  msg.className='msg show '+type;
+}
+
+function setButtonBusy(busy){
+  btn.disabled=busy;
+  btn.textContent=busy?'Saving…':'Confirm Bank';
+}
+
+function loadSaved(){
+  if(!currentUser)return;
+  const wa=currentUser.withdrawalAccount||{};
+  const bank=currentUser.bankName||wa.bankName||'';
+  const name=currentUser.bankHolder||wa.accountName||'';
+  const number=currentUser.bankAccount||wa.accountNumber||'';
+
+  const select=document.getElementById('bankName');
+  // Select the exact saved option after the complete bank list has loaded.
+  if(bank) select.value=bank;
+  document.getElementById('accountName').value=name;
+  document.getElementById('accountNumber').value=number;
+
+  if(bank||name||number){
+    document.getElementById('savedBank').textContent=bank||'—';
+    document.getElementById('savedName').textContent=name||'—';
+    document.getElementById('savedNumber').textContent=number||'—';
+    document.getElementById('saved').classList.add('show');
+  }
+}
+
+if(!currentUser){
+  location.replace('login.html');
+}else{
+  const select=document.getElementById('bankName');
+  GF_BANKS.forEach(function(name){
+    const o=document.createElement('option');
+    o.value=name;
+    o.textContent=name;
+    select.appendChild(o);
+  });
+  loadSaved();
+
+  select.addEventListener('change',function(){
+    // Keep the selected bank as the actual value submitted, not just display text.
+    if(this.selectedIndex>0) this.value=this.options[this.selectedIndex].value;
+  });
+}
+
+form.addEventListener('submit',async function(e){
+  e.preventDefault();
+  if(!currentUser)return;
+
+  const bankSelect=document.getElementById('bankName');
+  const bankName=String(bankSelect.value||'').trim();
+  const accountNumber=document.getElementById('accountNumber').value.replace(/\D/g,'').trim();
+  const accountName=document.getElementById('accountName').value.trim();
+
+  if(!bankName){
+    showMsg('Please select a bank from the bank list.','err');
+    bankSelect.focus();
+    return;
+  }
+  if(!/^\d{10}$/.test(accountNumber)){
+    showMsg('Enter a valid 10-digit account number.','err');
+    return;
+  }
+  if(!accountName){
+    showMsg('Enter the account name.','err');
+    return;
+  }
+
+  setButtonBusy(true);
+  try{
+    // Always fetch the newest customer record before saving so a stale dashboard
+    // copy cannot overwrite another recent customer update.
+    const data=await fetchBin();
+    if(!Array.isArray(data.users)) data.users=[];
+
+    const email=String(currentUser.email||'').trim().toLowerCase();
+    const idx=data.users.findIndex(function(u){
+      return String(u.email||'').trim().toLowerCase()===email;
+    });
+    if(idx<0) throw new Error('Customer account not found');
+
+    const user=data.users[idx];
+    const now=new Date().toISOString();
+
+    // Store the bank in both the legacy fields and the dedicated withdrawal
+    // account object. Withdrawal uses this same confirmed account.
+    user.bankName=bankName;
+    user.bankAccount=accountNumber;
+    user.bankHolder=accountName;
+    user.withdrawalAccount={
+      bankName:bankName,
+      accountNumber:accountNumber,
+      accountName:accountName,
+      confirmed:true,
+      updatedAt:now
+    };
+
+    await saveBin(data);
+
+    // Keep the logged-in session synchronized with the saved server record.
+    currentUser=user;
+    setLoggedUser(user);
+
+    document.getElementById('savedBank').textContent=bankName;
+    document.getElementById('savedName').textContent=accountName;
+    document.getElementById('savedNumber').textContent=accountNumber;
+    document.getElementById('saved').classList.add('show');
+
+    showMsg('Bank account confirmed and added to this customer. It will be used for withdrawals.','ok');
+  }catch(err){
+    console.error('Add bank failed:',err);
+    showMsg('Unable to save bank details. Please check your connection and try again.','err');
+  }finally{
+    setButtonBusy(false);
+  }
+});
+
+document.getElementById('accountNumber').addEventListener('input',function(){
+  this.value=this.value.replace(/\D/g,'').slice(0,10);
+});
+</script></body></html>
